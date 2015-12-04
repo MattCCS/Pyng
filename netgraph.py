@@ -1,46 +1,107 @@
-# encoding: utf-8
+#!/usr/bin/python
 
-# FORM: xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|...
+"""
+Simple, pretty ping wrapper (for *nix).
+
+Colorizes ping results and displays as a bar graph on a log scale.
+"""
+
+from __future__ import unicode_literals
+
+__author__ = "Matthew Cotton"
+__version__ = '1.0.2'
+
+# standard
+import re
+import time
+import argparse
+import datetime
+import threading
+import subprocess
 
 ####################################
+# constants
 
-HEADER = '|'.join('{:<9}'.format('1' + '0'*i + 'ms') for i in xrange(6))
-SUBHEADER = '+'.join('-'*9 for i in xrange(6))
+COLUMNS = 6
+WIDTH   = 9 # <--- do not change -- we use a log scale, so we range from 0 to 9.
+
+HEADER = '|'.join('{:<9}'.format('1' + '0'*i + 'ms') for i in xrange(COLUMNS))
+SUBHEADER = '+'.join('-'*9 for i in xrange(COLUMNS))
 
 BLANK = '.'
 HEAD = u'\u2588'
 FILL = HEAD
 
-def graph(num):
-    num = int(num)
+####################################
+# ANSI color utilities
 
-    s = str(num)
-    first = int(s[0])
+def _color(string, ansi):
+    """Colors the given string with the given ANSI color index."""
+    return "\x1b[0;{}m{}\x1b[0m".format(ansi, string)
 
-    L = [BLANK*9] * 6
-    for i in xrange(len(s)):
-        L[i] = FILL*9
+def green(string):
+    return _color(string, 32)
 
-    L[len(s)-1] = u'{:{}<9}'.format(HEAD*first, BLANK)
-    
-    return '|'.join(L)
+def yellow(string):
+    return _color(string, 33)
+
+def red(string):
+    return _color(string, 31)
+
+def black(string):
+    return _color(string, 30)
+
+def color(string, index):
+    """Colors the given string based on list position (ANSI)."""
+    if index == 0:
+        return green(string)
+    elif index in (1,2):
+        return yellow(string)
+    elif index == 3:
+        return red(string)
+    else:
+        return black(string)
 
 ####################################
+# graphing utility
 
-import re
-import sys
-import time
-import datetime
-import threading
-import subprocess
+def graph(num):
+    """
+    Graphs the given ping result on a log scale.
+    (must be 0 <= num <= 999999)
 
-RUN = True
+    Returns a single output row (no color, Unicode).
+    """
+
+    num = int(num)
+    num_str = str(num)
+    digits = len(num_str)
+    first_digit = int(num_str[0])
+
+    row = [BLANK*WIDTH] * COLUMNS
+    for i in xrange(digits-1):
+        blocks = FILL*WIDTH
+        row[i] = blocks
+
+    row[digits-1] = u'{:{}<{}}'.format(HEAD*first_digit, BLANK, WIDTH)
+
+    return '|'.join(row)
+
+####################################
+# background ping thread
+
+RUN   = True
 PINGS = None
-HOST = None
+HOST  = None
 TIMES = [] # milliseconds
 TIME_REGEX = r"""time=([0-9\.]+) ms"""
 
 def fetch_times():
+    """
+    Runs ping() in the background, parsing and
+    appending its results to a buffer.
+    """
+
     global PINGS
     global RUN
 
@@ -59,72 +120,68 @@ def fetch_times():
     RUN = False
 
 ####################################
+# argument parsing
 
 def parse_args():
+    """Parses and saves command-line arguments."""
     global PINGS
     global HOST
 
-    try:
-        PINGS = int(sys.argv[1])
-    except IndexError:
-        print "Please supply a number of pings to send (-1 is infinite)."
-        exit()
-    except ValueError:
-        print "If you're gonna supply something, make it an integer!"
-        exit()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pings', default=-1, type=int)
+    parser.add_argument('--host',  default='www.google.com')
+    args = parser.parse_args()
 
-    try:
-        HOST = sys.argv[2]
-    except IndexError:
-        HOST = 'www.google.com'
-
-    print "Pinging: {}".format(HOST)
-    print "({})".format("{} times".format(PINGS) if PINGS > 0 else "forever")
+    PINGS = args.pings
+    HOST  = args.host
 
 ####################################
+# main functions
 
-def color(s, n):
-    return "\x1b[0;{}m{}\x1b[0m".format(n, s)
+def loop():
+    """Main loop.  Waits for ping results and displays them prettily."""
 
-def green(s):
-    return color(s, 32)
+    loops = 0
+    while TIMES or RUN:
+        try:
+            res = TIMES.pop(0)
 
-def yellow(s):
-    return color(s, 33)
+            # header, for context
+            if not loops % 20:
+                print
+                print datetime.datetime.now().strftime("%D %H:%M:%S")
+                print "Pinging: {} ({})".format(HOST, "{} left".format(PINGS) if PINGS > 0 else "forever")
+                print HEADER
+                print SUBHEADER
 
-def red(s):
-    return color(s, 31)
+            if res > 0:
+                row = graph(res)
+                blocks = row.split('|')
+                row = '|'.join(color(e,i) for (i,e) in enumerate(blocks))
+                print row.encode('utf-8') # <--- unicode sandwich.
+            else:
+                print "TIMEOUT!"
 
-def black(s):
-    return color(s, 30)
+            loops += 1
+
+        except IndexError:
+            pass # no new data
+
+        # if we get a ton of results in rapid successon, we will
+        # update the screen quickly (~100/sec) until we catch up
+        time.sleep(0.01)
+
 
 def main():
+    """Gets arguments, starts ping, and begins loop."""
 
     parse_args()
 
-    t = threading.Thread(target=fetch_times)
-    t.start()
+    ping_thread = threading.Thread(target=fetch_times)
+    ping_thread.start()
 
-    i = 0
-    while TIMES or RUN:
-        try:
-            t = TIMES.pop(0)
-            if not i % 20:
-                print
-                print datetime.datetime.now().strftime("%D %H:%M:%S")
-                print HEADER
-                print SUBHEADER
-            if t > 0:
-                g = graph(t).encode('utf-8')
-                L = g.split('|')
-                g = '|'.join([green(L[0]), yellow(L[1]), yellow(L[2])] + map(red, L[3:-2]) + map(black, L[-2:]))
-                print g
-            else:
-                print "TIMEOUT!"
-            i += 1
-        except IndexError:
-            pass # no new data
-        time.sleep(0.01)
+    loop()
+
 
 if __name__ == '__main__':
     try:

@@ -14,4 +14,7 @@ A pure-Python ping wrapper for pretty and fast network assessment.
 * specify host and number of pings (-1 is infinite)
 * < 80 characters wide!
 
+## Un-Features
 
+* Not tested on Linux
+* No support for specifying ping rate
