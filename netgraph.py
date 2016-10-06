@@ -25,7 +25,15 @@ import subprocess
 COLUMNS = 6
 WIDTH = 9  # <--- do not change -- we use a log scale, so we range from 0 to 9.
 
-HEADER = '|'.join('{:<9}'.format('1' + '0' * i + 'ms') for i in xrange(COLUMNS))
+
+def ms_s(i):
+    if i >= 3:
+        return "1{}s".format('0' * (i - 3))
+    else:
+        return "1{}ms".format('0' * i)
+
+
+HEADER = '|'.join('{:<9}'.format(ms_s(i)) for i in xrange(COLUMNS))
 SUBHEADER = '+'.join('-' * 9 for i in xrange(COLUMNS))
 
 BLANK = '.'
