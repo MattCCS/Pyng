@@ -23,10 +23,10 @@ import subprocess
 # constants
 
 COLUMNS = 6
-WIDTH   = 9 # <--- do not change -- we use a log scale, so we range from 0 to 9.
+WIDTH = 9  # <--- do not change -- we use a log scale, so we range from 0 to 9.
 
-HEADER = '|'.join('{:<9}'.format('1' + '0'*i + 'ms') for i in xrange(COLUMNS))
-SUBHEADER = '+'.join('-'*9 for i in xrange(COLUMNS))
+HEADER = '|'.join('{:<9}'.format('1' + '0' * i + 'ms') for i in xrange(COLUMNS))
+SUBHEADER = '+'.join('-' * 9 for i in xrange(COLUMNS))
 
 BLANK = '.'
 HEAD = u'\u2588'
@@ -35,27 +35,33 @@ FILL = HEAD
 ####################################
 # ANSI color utilities
 
+
 def _color(string, ansi):
     """Colors the given string with the given ANSI color index."""
     return "\x1b[0;{}m{}\x1b[0m".format(ansi, string)
 
+
 def green(string):
     return _color(string, 32)
+
 
 def yellow(string):
     return _color(string, 33)
 
+
 def red(string):
     return _color(string, 31)
 
+
 def black(string):
     return _color(string, 30)
+
 
 def color(string, index):
     """Colors the given string based on list position (ANSI)."""
     if index == 0:
         return green(string)
-    elif index in (1,2):
+    elif index in (1, 2):
         return yellow(string)
     elif index == 3:
         return red(string)
@@ -64,6 +70,7 @@ def color(string, index):
 
 ####################################
 # graphing utility
+
 
 def graph(num):
     """
@@ -78,23 +85,25 @@ def graph(num):
     digits = len(num_str)
     first_digit = int(num_str[0])
 
-    row = [BLANK*WIDTH] * COLUMNS
-    for i in xrange(digits-1):
-        blocks = FILL*WIDTH
+    row = [BLANK * WIDTH] * COLUMNS
+    for i in xrange(digits - 1):
+        blocks = FILL * WIDTH
         row[i] = blocks
 
-    row[digits-1] = u'{:{}<{}}'.format(HEAD*first_digit, BLANK, WIDTH)
+    row[digits - 1] = u'{:{}<{}}'.format(HEAD * first_digit, BLANK, WIDTH)
 
     return '|'.join(row)
 
 ####################################
 # background ping thread
 
-RUN   = True
+
+RUN = True
 PINGS = None
-HOST  = None
-TIMES = [] # milliseconds
+HOST = None
+TIMES = []  # milliseconds
 TIME_REGEX = r"""time=([0-9\.]+) ms"""
+
 
 def fetch_times():
     """
@@ -114,13 +123,14 @@ def fetch_times():
                 num = int(float(re.search(TIME_REGEX, line).group(1)))
                 TIMES.append(num)
             except AttributeError:
-                TIMES.append(-1) # probably a timeout
+                TIMES.append(-1)  # probably a timeout
             PINGS -= 1
 
     RUN = False
 
 ####################################
 # argument parsing
+
 
 def parse_args():
     """Parses and saves command-line arguments."""
@@ -133,10 +143,11 @@ def parse_args():
     args = parser.parse_args()
 
     PINGS = args.pings
-    HOST  = args.host
+    HOST = args.host
 
 ####################################
 # main functions
+
 
 def loop():
     """Main loop.  Waits for ping results and displays them prettily."""
@@ -157,15 +168,15 @@ def loop():
             if res > 0:
                 row = graph(res)
                 blocks = row.split('|')
-                row = '|'.join(color(e,i) for (i,e) in enumerate(blocks))
-                print row.encode('utf-8') # <--- unicode sandwich.
+                row = '|'.join(color(e, i) for (i, e) in enumerate(blocks))
+                print row.encode('utf-8')  # <--- unicode sandwich.
             else:
                 print "TIMEOUT!"
 
             loops += 1
 
         except IndexError:
-            pass # no new data
+            pass  # no new data
 
         # if we get a ton of results in rapid successon, we will
         # update the screen quickly (~100/sec) until we catch up
