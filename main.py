@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Simple, pretty ping wrapper (for *nix).
 
@@ -8,10 +6,6 @@ Colorizes ping results and displays as a bar graph on a log scale.
 
 from __future__ import unicode_literals
 
-__author__ = "Matthew Cotton"
-__version__ = '1.0.2'
-
-# standard
 import re
 import time
 import argparse
@@ -19,21 +13,17 @@ import datetime
 import threading
 import subprocess
 
-####################################
-# constants
 
 COLUMNS = 6
 WIDTH   = 9 # <--- do not change -- we use a log scale, so we range from 0 to 9.
 
-HEADER = '|'.join('{:<9}'.format('1' + '0'*i + 'ms') for i in xrange(COLUMNS))
-SUBHEADER = '+'.join('-'*9 for i in xrange(COLUMNS))
+HEADER = '|'.join('{:<9}'.format('1' + '0'*i + 'ms') for i in range(COLUMNS))
+SUBHEADER = '+'.join('-'*9 for i in range(COLUMNS))
 
 BLANK = '.'
 HEAD = u'\u2588'
 FILL = HEAD
 
-####################################
-# ANSI color utilities
 
 def _color(string, ansi):
     """Colors the given string with the given ANSI color index."""
@@ -62,8 +52,6 @@ def color(string, index):
     else:
         return black(string)
 
-####################################
-# graphing utility
 
 def graph(num):
     """
@@ -79,7 +67,7 @@ def graph(num):
     first_digit = int(num_str[0])
 
     row = [BLANK*WIDTH] * COLUMNS
-    for i in xrange(digits-1):
+    for i in range(digits-1):
         blocks = FILL*WIDTH
         row[i] = blocks
 
@@ -87,8 +75,6 @@ def graph(num):
 
     return '|'.join(row)
 
-####################################
-# background ping thread
 
 RUN   = True
 PINGS = None
@@ -119,8 +105,6 @@ def fetch_times():
 
     RUN = False
 
-####################################
-# argument parsing
 
 def parse_args():
     """Parses and saves command-line arguments."""
@@ -128,15 +112,13 @@ def parse_args():
     global HOST
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pings', default=-1, type=int)
-    parser.add_argument('--host',  default='www.google.com')
+    parser.add_argument('host',  default='www.google.com', nargs='?')
+    parser.add_argument('-p', '--pings', default=-1, type=int)
     args = parser.parse_args()
 
     PINGS = args.pings
     HOST  = args.host
 
-####################################
-# main functions
 
 def loop():
     """Main loop.  Waits for ping results and displays them prettily."""
@@ -148,19 +130,19 @@ def loop():
 
             # header, for context
             if not loops % 20:
-                print
-                print datetime.datetime.now().strftime("%D %H:%M:%S")
-                print "Pinging: {} ({})".format(HOST, "{} left".format(PINGS) if PINGS > 0 else "forever")
-                print HEADER
-                print SUBHEADER
+                print('')
+                print(datetime.datetime.now().strftime("%D %H:%M:%S"))
+                print("Pinging: {} ({})".format(HOST, "{} left".format(PINGS) if PINGS > 0 else "forever"))
+                print(HEADER)
+                print(SUBHEADER)
 
             if res > 0:
                 row = graph(res)
                 blocks = row.split('|')
                 row = '|'.join(color(e,i) for (i,e) in enumerate(blocks))
-                print row.encode('utf-8') # <--- unicode sandwich.
+                print(row.encode('utf-8')) # <--- unicode sandwich
             else:
-                print "TIMEOUT!"
+                print("TIMEOUT!")
 
             loops += 1
 

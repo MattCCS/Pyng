@@ -1,5 +1,0 @@
-#!/bin/bash
-
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) # directory of this script
-
-python $DIR/netgraph.py $@
