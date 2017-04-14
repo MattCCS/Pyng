@@ -19,6 +19,8 @@ from pyng import utils
 assert sys.version_info >= (3, 6, 0)
 
 
+DESCRIPTION = "Simple, pretty ping wrapper (for *nix).  \
+Use `pyng` or `pyng3` to invoke.  Uninstall with `pip3 uninstall pyng3`."
 HEADER = '|'.join(
     '{:<{}}'.format(
         utils.column_to_timescale_header(i),
@@ -63,7 +65,7 @@ def graph(num):
 
 def parse_args():
     """Parses and saves command-line arguments."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('host',  default='www.google.com', nargs='?')
     parser.add_argument('-p', '--pings', default=-1, type=int)
     return parser.parse_args()

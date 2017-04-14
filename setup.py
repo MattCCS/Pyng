@@ -6,9 +6,9 @@ from setuptools import setup
 
 
 setup(
-    name='pyng',
+    name='pyng3',
     packages=['pyng'],
-    version='2.0.1',
+    version='2.0.5',
     author='Matt Cotton',
     author_email='matthewcotton.cs@gmail.com',
     url='https://github.com/MattCCS/Pyng',
@@ -20,6 +20,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pyng=pyng.main:main',
+            'pyng3=pyng.main:main',
         ],
     },
 )
