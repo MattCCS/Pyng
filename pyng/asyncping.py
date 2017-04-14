@@ -6,20 +6,20 @@ import re
 import subprocess
 
 
-TIME_REGEX = r"""time=([0-9\.]+) ms"""
+TIME_REGEX = r'''time=([0-9\.]+) ms'''
 
 
 def fetch_times(queue, host, pings=-1):
     """
-    Runs ping() in the background, parsing and
-    appending its results to a buffer.
+    Runs `ping` in the background, parsing and
+    appending its results to a queue.
     """
 
     ping = subprocess.Popen(['ping', host], stdout=subprocess.PIPE)
 
     # this lets us set PINGS to -1 to run forever
     while pings != 0:
-        line = ping.stdout.readline().strip()
+        line = ping.stdout.readline().decode('utf-8').strip()
 
         if line and not line.startswith("PING"):
             try:

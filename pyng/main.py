@@ -4,33 +4,29 @@ Simple, pretty ping wrapper (for *nix).
 Colorizes ping results and displays as a bar graph on a log scale.
 """
 
-from __future__ import unicode_literals
-
 import argparse
 import datetime
+import sys
 import time
 from multiprocessing import Process
 from multiprocessing import Queue
 
 from pyng import asyncping
 from pyng import color
+from pyng import settings
 from pyng import utils
 
+assert sys.version_info >= (3, 6, 0)
 
-# change these carefully... we use a log scale, so WIDTH ranges from 0 to 9
-COLUMNS = 6
-WIDTH = 9
-
-PINGS_PER_HEADER = 20
-BLANK = '.'
-HEAD = u'\u2588'
-FILL = HEAD
 
 HEADER = '|'.join(
-    '{:<{}}'.format(utils.column_to_timescale_header(i), WIDTH)
-    for i in range(COLUMNS)
+    '{:<{}}'.format(
+        utils.column_to_timescale_header(i),
+        settings.WIDTH,
+    )
+    for i in range(settings.COLUMNS)
 )
-SUBHEADER = '+'.join('-' * WIDTH for i in range(COLUMNS))
+SUBHEADER = '+'.join('-' * settings.WIDTH for i in range(settings.COLUMNS))
 
 
 def graph(num):
@@ -40,18 +36,25 @@ def graph(num):
 
     Returns a single output row (no color, Unicode).
     """
+    if not 0 <= num <= 999999:
+        print("Got ping outside range [0, 999999]")
+        return
 
     num = int(num)
     num_str = str(num)
     digits = len(num_str)
     first_digit = int(num_str[0])
 
-    row = [BLANK * WIDTH] * COLUMNS
+    row = [settings.BLANK * settings.WIDTH] * settings.COLUMNS
     for i in range(digits - 1):
-        blocks = FILL * WIDTH
+        blocks = settings.FILL * settings.WIDTH
         row[i] = blocks
 
-    row[digits - 1] = u'{:{}<{}}'.format(HEAD * first_digit, BLANK, WIDTH)
+    row[digits - 1] = '{:{}<{}}'.format(
+        settings.HEAD * first_digit,
+        settings.BLANK,
+        settings.WIDTH,
+    )
 
     return '|'.join(row)
 
@@ -76,7 +79,7 @@ def print_graph(result):
     row = graph(result)
     blocks = row.split('|')
     row = '|'.join(color.color(e, i) for (i, e) in enumerate(blocks))
-    print(row.encode('utf-8'))  # <--- unicode sandwich.
+    print(row)
 
 
 def loop(queue, host, pings):
@@ -86,7 +89,7 @@ def loop(queue, host, pings):
         result = queue.get()
 
         # header, for context
-        if not loops % PINGS_PER_HEADER:
+        if not loops % settings.PINGS_PER_HEADER:
             print_header(host, pings)
 
         if result > 0:
