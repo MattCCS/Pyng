@@ -4,13 +4,13 @@ A pure-Python ping wrapper for pretty and fast network assessment.
 
 Requirements
 ------------
-- Python 3.6+
-- pip3 (to install)
+- Python 2.7+
+- pip or pip3 (to install)
 - Mac/Linux
 
 Installation
 ------------
-Run ``pip3 install pyng3``
+Run ``pip install pyng3``, or run ``pip3 install pyng3``
 
 How to Use
 ----------
@@ -23,6 +23,7 @@ Features
 - log scale to handle all ranges of latency
 - specify host and number of pings (-1 is infinite)
 - < 80 characters wide!
+- Tested with Python 2.7 and Python 3.6
 
 Un-Features
 -----------
