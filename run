@@ -11,4 +11,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # move to project directory
 cd $DIR
 
-python main.py $@
+python3 pyng/main.py $@
