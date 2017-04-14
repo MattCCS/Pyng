@@ -1,10 +1,10 @@
 Pyng
 ====
-A pure-Python ping wrapper for pretty and fast network assessment.
+A Python ``ping`` wrapper for pretty and fast network assessment.
 
 Requirements
 ------------
-- Python 2.7+
+- Python 2.7+ or Python 3+
 - pip or pip3 (to install)
 - Mac/Linux
 
