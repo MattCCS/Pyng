@@ -26,10 +26,10 @@ HEAD = u'\u2588'
 FILL = HEAD
 
 HEADER = '|'.join(
-    '{:<9}'.format(utils.column_to_timescale_header(i))
+    '{:<{}}'.format(utils.column_to_timescale_header(i), WIDTH)
     for i in range(COLUMNS)
 )
-SUBHEADER = '+'.join('-' * 9 for i in range(COLUMNS))
+SUBHEADER = '+'.join('-' * WIDTH for i in range(COLUMNS))
 
 
 def graph(num):
