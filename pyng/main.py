@@ -13,9 +13,12 @@ import datetime
 import threading
 import subprocess
 
+from pyng import color
+
 
 COLUMNS = 6
 WIDTH = 9  # <--- do not change -- we use a log scale, so we range from 0 to 9.
+
 
 def ms_s(i):
     if i >= 3:
@@ -30,41 +33,6 @@ SUBHEADER = '+'.join('-' * 9 for i in range(COLUMNS))
 BLANK = '.'
 HEAD = u'\u2588'
 FILL = HEAD
-
-
-
-def _color(string, ansi):
-    """Colors the given string with the given ANSI color index."""
-    return "\x1b[0;{}m{}\x1b[0m".format(ansi, string)
-
-
-def green(string):
-    return _color(string, 32)
-
-
-def yellow(string):
-    return _color(string, 33)
-
-
-def red(string):
-    return _color(string, 31)
-
-
-def black(string):
-    return _color(string, 30)
-
-
-def color(string, index):
-    """Colors the given string based on list position (ANSI)."""
-    if index == 0:
-        return green(string)
-    elif index in (1, 2):
-        return yellow(string)
-    elif index == 3:
-        return red(string)
-    else:
-        return black(string)
-
 
 
 def graph(num):
@@ -88,7 +56,6 @@ def graph(num):
     row[digits - 1] = u'{:{}<{}}'.format(HEAD * first_digit, BLANK, WIDTH)
 
     return '|'.join(row)
-
 
 
 RUN = True
@@ -122,7 +89,6 @@ def fetch_times():
     RUN = False
 
 
-
 def parse_args():
     """Parses and saves command-line arguments."""
     global PINGS
@@ -135,7 +101,6 @@ def parse_args():
 
     PINGS = args.pings
     HOST = args.host
-
 
 
 def loop():
@@ -157,7 +122,7 @@ def loop():
             if res > 0:
                 row = graph(res)
                 blocks = row.split('|')
-                row = '|'.join(color(e, i) for (i, e) in enumerate(blocks))
+                row = '|'.join(color.color(e, i) for (i, e) in enumerate(blocks))
                 print(row.encode('utf-8'))  # <--- unicode sandwich.
             else:
                 print("TIMEOUT!")
