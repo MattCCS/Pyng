@@ -14,26 +14,22 @@ import threading
 import subprocess
 
 from pyng import color
+from pyng import utils
 
 
 # change these carefully... we use a log scale, so WIDTH ranges from 0 to 9
 COLUMNS = 6
 WIDTH = 9
 
-
-def ms_s(i):
-    if i >= 3:
-        return "1{}s".format('0' * (i - 3))
-    else:
-        return "1{}ms".format('0' * i)
-
-
-HEADER = '|'.join('{:<9}'.format(ms_s(i)) for i in range(COLUMNS))
-SUBHEADER = '+'.join('-' * 9 for i in range(COLUMNS))
-
 BLANK = '.'
 HEAD = u'\u2588'
 FILL = HEAD
+
+HEADER = '|'.join(
+    '{:<9}'.format(utils.column_to_timescale_header(i))
+    for i in range(COLUMNS)
+)
+SUBHEADER = '+'.join('-' * 9 for i in range(COLUMNS))
 
 
 def graph(num):
