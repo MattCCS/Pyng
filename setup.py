@@ -8,14 +8,17 @@ from setuptools import setup
 setup(
     name='pyng3',
     packages=['pyng'],
-    version='2.0.6',
+    version='2.1.0',
     author='Matt Cotton',
     author_email='matthewcotton.cs@gmail.com',
     url='https://github.com/MattCCS/Pyng',
 
     description='Simple, pretty ping wrapper (for *nix)',
     long_description=open("README.md").read(),
-    classifiers=["Programming Language :: Python :: 3"],
+    classifiers=[
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+    ],
 
     entry_points={
         'console_scripts': [

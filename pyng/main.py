@@ -4,6 +4,8 @@ Simple, pretty ping wrapper (for *nix).
 Colorizes ping results and displays as a bar graph on a log scale.
 """
 
+from __future__ import unicode_literals
+
 import argparse
 import datetime
 import sys
@@ -16,7 +18,7 @@ from pyng import color
 from pyng import settings
 from pyng import utils
 
-assert sys.version_info >= (3, 6, 0)
+assert sys.version_info >= (2, 7, 0)
 
 
 DESCRIPTION = "Simple, pretty ping wrapper (for *nix).  \
