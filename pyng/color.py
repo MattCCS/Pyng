@@ -25,9 +25,9 @@ def black(string):
 
 def color(string, index):
     """Colors the given string based on list position (ANSI)."""
-    if index == 0:
+    if index in (0, 1):
         return green(string)
-    elif index in (1, 2):
+    elif index == 2:
         return yellow(string)
     elif index == 3:
         return red(string)
