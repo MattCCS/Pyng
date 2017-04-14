@@ -16,8 +16,9 @@ import subprocess
 from pyng import color
 
 
+# change these carefully... we use a log scale, so WIDTH ranges from 0 to 9
 COLUMNS = 6
-WIDTH = 9  # <--- do not change -- we use a log scale, so we range from 0 to 9.
+WIDTH = 9
 
 
 def ms_s(i):
