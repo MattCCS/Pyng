@@ -8,7 +8,7 @@ from setuptools import setup
 setup(
     name='pyng3',
     packages=['pyng'],
-    version='2.1.2',
+    version='3.0.0',
     author='Matt Cotton',
     author_email='matthewcotton.cs@gmail.com',
     url='https://github.com/MattCCS/Pyng',
