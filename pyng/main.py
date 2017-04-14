@@ -6,10 +6,9 @@ Colorizes ping results and displays as a bar graph on a log scale.
 
 from __future__ import unicode_literals
 
-import time
 import argparse
 import datetime
-import threading
+import time
 from multiprocessing import Process
 from multiprocessing import Queue
 
