@@ -6,13 +6,14 @@ Colorizes ping results and displays as a bar graph on a log scale.
 
 from __future__ import unicode_literals
 
-import re
 import time
 import argparse
 import datetime
 import threading
-import subprocess
+from multiprocessing import Process
+from multiprocessing import Queue
 
+from pyng import asyncping
 from pyng import color
 from pyng import utils
 
@@ -21,6 +22,7 @@ from pyng import utils
 COLUMNS = 6
 WIDTH = 9
 
+PINGS_PER_HEADER = 20
 BLANK = '.'
 HEAD = u'\u2588'
 FILL = HEAD
@@ -55,79 +57,46 @@ def graph(num):
     return '|'.join(row)
 
 
-RUN = True
-PINGS = None
-HOST = None
-TIMES = []  # milliseconds
-TIME_REGEX = r"""time=([0-9\.]+) ms"""
-
-
-def fetch_times():
-    """
-    Runs ping() in the background, parsing and
-    appending its results to a buffer.
-    """
-
-    global PINGS
-    global RUN
-
-    ping = subprocess.Popen(['ping', HOST], stdout=subprocess.PIPE)
-
-    while PINGS != 0:
-        line = ping.stdout.readline().strip()
-        if line and not line.startswith("PING"):
-            try:
-                num = int(float(re.search(TIME_REGEX, line).group(1)))
-                TIMES.append(num)
-            except AttributeError:
-                TIMES.append(-1)  # probably a timeout
-            PINGS -= 1
-
-    RUN = False
-
-
 def parse_args():
     """Parses and saves command-line arguments."""
-    global PINGS
-    global HOST
-
     parser = argparse.ArgumentParser()
     parser.add_argument('host',  default='www.google.com', nargs='?')
     parser.add_argument('-p', '--pings', default=-1, type=int)
-    args = parser.parse_args()
-
-    PINGS = args.pings
-    HOST = args.host
+    return parser.parse_args()
 
 
-def loop():
-    """Main loop.  Waits for ping results and displays them prettily."""
+def print_header(host, pings):
+    print('')
+    print(datetime.datetime.now().strftime("%D %H:%M:%S"))
+    print("Pinging: {} ({})".format(host, "{} left".format(pings) if pings > 0 else "forever"))
+    print(HEADER)
+    print(SUBHEADER)
 
+
+def print_graph(result):
+    row = graph(result)
+    blocks = row.split('|')
+    row = '|'.join(color.color(e, i) for (i, e) in enumerate(blocks))
+    print(row.encode('utf-8'))  # <--- unicode sandwich.
+
+
+def loop(queue, host, pings):
+    """Wait for ping results and display them prettily"""
     loops = 0
-    while TIMES or RUN:
-        try:
-            res = TIMES.pop(0)
+    while pings != 0:
+        result = queue.get()
 
-            # header, for context
-            if not loops % 20:
-                print('')
-                print(datetime.datetime.now().strftime("%D %H:%M:%S"))
-                print("Pinging: {} ({})".format(HOST, "{} left".format(PINGS) if PINGS > 0 else "forever"))
-                print(HEADER)
-                print(SUBHEADER)
+        # header, for context
+        if not loops % PINGS_PER_HEADER:
+            print_header(host, pings)
 
-            if res > 0:
-                row = graph(res)
-                blocks = row.split('|')
-                row = '|'.join(color.color(e, i) for (i, e) in enumerate(blocks))
-                print(row.encode('utf-8'))  # <--- unicode sandwich.
-            else:
-                print("TIMEOUT!")
+        if result > 0:
+            print_graph(result)
+        else:
+            print("TIMEOUT!")
 
-            loops += 1
-
-        except IndexError:
-            pass  # no new data
+        loops += 1
+        pings -= 1
 
         # if we get a ton of results in rapid successon, we will
         # update the screen quickly (~100/sec) until we catch up
@@ -135,21 +104,27 @@ def loop():
 
 
 def main():
-    """Gets arguments, starts ping, and begins loop."""
+    """Get arguments, start ping, and begin loop"""
+    args = parse_args()
+    host = args.host
+    pings = args.pings
 
-    parse_args()
+    queue = Queue()
 
-    ping_thread = threading.Thread(target=fetch_times)
+    ping_thread = Process(
+        target=asyncping.fetch_times,
+        args=(queue, host),
+        kwargs={"pings": pings},
+    )
     ping_thread.start()
 
-    loop()
+    try:
+        loop(queue, host, pings)
+    except KeyboardInterrupt:
+        print("Closing.")
+
+    ping_thread.terminate()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        PINGS = 0
-    except:
-        PINGS = 0
-        raise
+    main()
