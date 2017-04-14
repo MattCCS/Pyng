@@ -26,7 +26,9 @@ HEADER = '|'.join(
     )
     for i in range(settings.COLUMNS)
 )
-SUBHEADER = '+'.join('-' * settings.WIDTH for i in range(settings.COLUMNS))
+SUBHEADER = '+'.join(
+    '-' * settings.WIDTH for i in range(settings.COLUMNS)
+)
 
 
 def graph(num):
