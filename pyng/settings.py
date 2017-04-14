@@ -1,4 +1,7 @@
 
+from __future__ import unicode_literals
+
+
 # change these carefully... we use a log scale, so WIDTH ranges from 0 to 9
 COLUMNS = 6
 WIDTH = 9
