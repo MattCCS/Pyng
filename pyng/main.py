@@ -98,7 +98,7 @@ def loop(queue, host, pings):
         if not loops % settings.PINGS_PER_HEADER:
             print_header(host, pings)
 
-        if result > 0:
+        if result >= 0:
             print_graph(result)
         else:
             print("TIMEOUT!")
